@@ -40,8 +40,7 @@ async def server_lifespan(server: Server) -> AsyncIterator[MCPContext]:
         # pyghidra_context.close()
         pass
 
-
-mcp = FastMCP("pyghidra-mcp", lifespan=server_lifespan)  # type: ignore
+mcp: FastMCP | None = None
 
 
 def register_common_tools(server: FastMCP) -> None:
@@ -73,9 +72,6 @@ def register_gui_tools(server: FastMCP) -> None:
     server.tool()(mcp_tools.set_current_program)
     server.tool()(mcp_tools.goto)
     server.tool()(mcp_tools.get_gui_context)
-
-
-register_common_tools(mcp)
 
 
 def init_pyghidra_context(  # noqa: C901
@@ -404,8 +400,9 @@ def main(
     project_directory = str(project_spec.project_directory)
     project_name = project_spec.project_name
     pyghidra_mcp_dir = project_spec.pyghidra_mcp_dir
-    mcp.settings.port = port
-    mcp.settings.host = host
+    global mcp
+    mcp = FastMCP("pyghidra-mcp", lifespan=server_lifespan, host=host, port=port)  # type: ignore
+    register_common_tools(mcp)
 
     if gui:
         if transport == "stdio":
