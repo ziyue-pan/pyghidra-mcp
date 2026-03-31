@@ -36,13 +36,10 @@ async def server_lifespan(server: Server) -> AsyncIterator[PyGhidraContext]:
         # pyghidra_context.close()
         pass
 
-mcp: FastMCP | None = None
-
-
 # MCP Tools
 # ---------------------------------------------------------------------------------
 # Register tools from mcp_tools module
-def register_mcp_tools() -> None:
+def register_mcp_tools(mcp: FastMCP) -> None:
     mcp.tool()(mcp_tools.decompile_function)
     mcp.tool()(mcp_tools.search_symbols_by_name)
     mcp.tool()(mcp_tools.search_code)
@@ -329,8 +326,8 @@ def main(
         project_directory = str(project_path)
         pyghidra_mcp_dir = project_path / f"{project_name}-pyghidra-mcp"
 
-    mcp = FastMCP("pyghidra-mcp", lifespan=server_lifespan, host=host)  # type: ignore
-    register_mcp_tools()
+    mcp = FastMCP("pyghidra-mcp", lifespan=server_lifespan, host=host, port=port)  # type: ignore
+    register_mcp_tools(mcp)
 
     mcp.settings.port = port
     mcp.settings.host = host
