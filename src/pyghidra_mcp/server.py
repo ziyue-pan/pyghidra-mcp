@@ -36,26 +36,26 @@ async def server_lifespan(server: Server) -> AsyncIterator[PyGhidraContext]:
         # pyghidra_context.close()
         pass
 
-
-mcp = FastMCP("pyghidra-mcp", lifespan=server_lifespan)  # type: ignore
+mcp: FastMCP | None = None
 
 
 # MCP Tools
 # ---------------------------------------------------------------------------------
 # Register tools from mcp_tools module
-mcp.tool()(mcp_tools.decompile_function)
-mcp.tool()(mcp_tools.search_symbols_by_name)
-mcp.tool()(mcp_tools.search_code)
-mcp.tool()(mcp_tools.list_project_binaries)
-mcp.tool()(mcp_tools.list_project_binary_metadata)
-mcp.tool()(mcp_tools.delete_project_binary)
-mcp.tool()(mcp_tools.list_exports)
-mcp.tool()(mcp_tools.list_imports)
-mcp.tool()(mcp_tools.list_cross_references)
-mcp.tool()(mcp_tools.search_strings)
-mcp.tool()(mcp_tools.read_bytes)
-mcp.tool()(mcp_tools.gen_callgraph)
-mcp.tool()(mcp_tools.import_binary)
+def register_mcp_tools() -> None:
+    mcp.tool()(mcp_tools.decompile_function)
+    mcp.tool()(mcp_tools.search_symbols_by_name)
+    mcp.tool()(mcp_tools.search_code)
+    mcp.tool()(mcp_tools.list_project_binaries)
+    mcp.tool()(mcp_tools.list_project_binary_metadata)
+    mcp.tool()(mcp_tools.delete_project_binary)
+    mcp.tool()(mcp_tools.list_exports)
+    mcp.tool()(mcp_tools.list_imports)
+    mcp.tool()(mcp_tools.list_cross_references)
+    mcp.tool()(mcp_tools.search_strings)
+    mcp.tool()(mcp_tools.read_bytes)
+    mcp.tool()(mcp_tools.gen_callgraph)
+    mcp.tool()(mcp_tools.import_binary)
 
 
 def init_pyghidra_context(
@@ -328,6 +328,10 @@ def main(
         # project_path/project_name.gpr, project_path/project_name-pyghidra-mcp/, etc.
         project_directory = str(project_path)
         pyghidra_mcp_dir = project_path / f"{project_name}-pyghidra-mcp"
+
+    mcp = FastMCP("pyghidra-mcp", lifespan=server_lifespan, host=host)  # type: ignore
+    register_mcp_tools()
+
     mcp.settings.port = port
     mcp.settings.host = host
 
